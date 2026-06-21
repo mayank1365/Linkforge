@@ -1,0 +1,74 @@
+<div class="stat-grid">
+  <div class="stat">
+    <div class="stat-value">{{ "{:,}".format(overview.total_clicks) }}</div>
+    <div class="stat-label">Total clicks</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value">{{ "{:,}".format(overview.total_links) }}</div>
+    <div class="stat-label">Links</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value">{{ overview.hit_rate }}%</div>
+    <div class="stat-label">Cache hit rate</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value">{{ "{:,}".format(overview.queue_depth) }}</div>
+    <div class="stat-label">Queue depth</div>
+  </div>
+</div>
+
+<div class="panel">
+  <h3>Clicks per hour <span class="muted">(last 24h)</span></h3>
+  {% if series %}
+  <div class="chart">
+    {% for point in series %}
+    <div class="bar-wrap" title="{{ point.hour }} — {{ point.clicks }} clicks">
+      <div class="bar" style="height: {{ (point.clicks / max_clicks * 100) | round(1) }}%"></div>
+      <div class="bar-x">{{ point.hour.strftime('%H') }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="muted">No clicks yet — shorten a link and visit it to see data here.</p>
+  {% endif %}
+</div>
+
+<div class="panel-row">
+  <div class="panel">
+    <h3>Top links</h3>
+    {% if top %}
+    <table class="tbl">
+      <thead><tr><th>Code</th><th>Destination</th><th>Clicks</th></tr></thead>
+      <tbody>
+        {% for link in top %}
+        <tr>
+          <td><a href="/{{ link.short_code }}" target="_blank" rel="noreferrer">/{{ link.short_code }}</a></td>
+          <td class="truncate">{{ link.long_url }}</td>
+          <td class="num">{{ "{:,}".format(link.click_count) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="muted">No links yet.</p>
+    {% endif %}
+  </div>
+
+  <div class="panel">
+    <h3>Devices</h3>
+    {% if devices %}
+    {% set device_total = devices | sum(attribute='count') %}
+    {% for d in devices %}
+    <div class="dev-row">
+      <span class="dev-name">{{ d.device }}</span>
+      <span class="dev-bar-track">
+        <span class="dev-bar" style="width: {{ (d.count / device_total * 100) | round(1) }}%"></span>
+      </span>
+      <span class="dev-count">{{ "{:,}".format(d.count) }}</span>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p class="muted">No device data yet.</p>
+    {% endif %}
+  </div>
+</div>

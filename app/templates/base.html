@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}LinkForge{% endblock %}</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>🔗</text></svg>" />
+</head>
+<body>
+  <nav class="nav">
+    <a class="brand" href="/">🔗 LinkForge</a>
+    <div class="nav-links">
+      <a href="/">Shorten</a>
+      <a href="/dashboard">Dashboard</a>
+      <a href="https://github.com" target="_blank" rel="noreferrer">Code</a>
+    </div>
+  </nav>
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="footer">
+    Built with FastAPI · Postgres · Redis · HTMX — async cache-aside redirects,
+    distributed token-bucket rate limiting, batched analytics ingestion.
+  </footer>
+</body>
+</html>

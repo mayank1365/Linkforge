@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}LinkForge — analytics{% endblock %}
+{% block content %}
+<section class="dash-head">
+  <h1>Analytics</h1>
+  <span class="live-dot">● live</span>
+</section>
+
+<div id="live" hx-get="/htmx/stats" hx-trigger="load, every 2s" hx-swap="innerHTML">
+  {% include "partials/stats.html" %}
+</div>
+{% endblock %}
