@@ -1,7 +1,7 @@
 """Server-rendered pages and HTMX partials (no JS framework)."""
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
@@ -55,13 +55,26 @@ async def htmx_shorten(
             row = await create_link_record(
                 session, str(payload.long_url), payload.custom_alias
             )
-        except Exception as exc:
-            detail = getattr(exc, "detail", "Could not create link.")
+        except HTTPException as exc:
+            if exc.status_code == 409:
+                message = (
+                    f"The alias “{payload.custom_alias}” is already in use — "
+                    "please choose a different one."
+                )
+            else:
+                message = str(exc.detail)
             return templates.TemplateResponse(
                 request,
                 "partials/error.html",
-                {"message": str(detail)},
-                status_code=409,
+                {"message": message},
+                status_code=exc.status_code,
+            )
+        except Exception:
+            return templates.TemplateResponse(
+                request,
+                "partials/error.html",
+                {"message": "Something went wrong creating your link. Please try again."},
+                status_code=500,
             )
 
     return templates.TemplateResponse(

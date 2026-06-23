@@ -11,19 +11,24 @@
 </head>
 <body>
   <nav class="nav">
-    <a class="brand" href="/">🔗 LinkForge</a>
-    <div class="nav-links">
-      <a href="/">Shorten</a>
-      <a href="/dashboard">Dashboard</a>
-      <a href="https://github.com" target="_blank" rel="noreferrer">Code</a>
+    <div class="nav-inner">
+      <a class="brand" href="/"><span class="brand-mark">🔗</span> LinkForge</a>
+      <div class="nav-links">
+        <a href="/">Shorten</a>
+        <a href="/dashboard">Dashboard</a>
+      </div>
     </div>
   </nav>
   <main class="container">
     {% block content %}{% endblock %}
   </main>
   <footer class="footer">
-    Built with FastAPI · Postgres · Redis · HTMX — async cache-aside redirects,
-    distributed token-bucket rate limiting, batched analytics ingestion.
+    <div class="footer-inner">
+      <p class="footer-tech">FastAPI · PostgreSQL · Redis · HTMX</p>
+      <p class="footer-note">
+        Cache-aside redirects · distributed rate limiting · batched analytics ingestion
+      </p>
+    </div>
   </footer>
 </body>
 </html>
