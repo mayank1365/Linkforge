@@ -83,26 +83,30 @@ locust -f locustfile.py --host http://localhost:8000 \
   --users 200 --spawn-rate 50 --run-time 60s --headless
 ```
 
-The test seeds a pool of links, then drives the redirect hot path with 200
-concurrent users for 60s.
+A second, multi-endpoint scenario (`stress_test.py`) drives a realistic mix —
+redirect / live alias-check / create / dashboard — at 150–600 concurrent users.
 
-**Results** (Apple Silicon laptop, 4 Uvicorn workers — with Postgres, Redis *and*
-the load generator all running on the same machine, so CPU was the bottleneck):
+**Results** — single Uvicorn worker (same shape as the Render deployment), with
+Postgres, Redis *and* the load generator all on one laptop, so CPU was the bottleneck:
 
 ```
-Endpoint                 Requests      req/s   p50    p95    p99    fails
------------------------------------------------------------------------------
-GET /[code] (redirect)    121,187    2,109/s   71ms   90ms  100ms   0.00%
-POST /api/links (create)    6,103      106/s   75ms   93ms  100ms   0.00%
------------------------------------------------------------------------------
-Aggregate                 127,290    2,216/s   71ms   90ms  100ms   0.00%
+Scenario            Users   Total reqs   Throughput   Failures   Redirect p50/p95/p99
+----------------------------------------------------------------------------------------
+Steady state         150       53,944     1,204/s      0.00%        39 / 71 / 98 ms
+High load            400       52,757     1,179/s      0.00%        41 / 93 / 140 ms
+Spike (ramp 300/s)   600       40,679     1,363/s      0.00%        38 / 120 / 640 ms
 
-Cache hit rate: 99.9% (121,209 hits / 121,290 lookups)
+~147k requests, 0 failures · 99.5% cache hit rate · ingestion queue drained to 0
 ```
 
-Zero failed requests across 127k requests. The cache-aside layer kept ~99.9% of
-redirects off Postgres; the bottleneck was raw CPU on a single dev machine
-(co-resident load generator), so these numbers are a conservative floor.
+- **Zero failures** across every scenario; redirects stay <150 ms p95 even at 4× the
+  saturation point, and latency recovers to ~3–8 ms instantly after a spike.
+- The single worker is **CPU-bound on one core** (~1,200 req/s ceiling). The app is
+  stateless, so it scales ~linearly — **4 workers on the same box reached ~2,200 req/s**.
+- The distributed token-bucket limiter throttles correctly (20 burst → 429 → refill).
+
+📄 **Full breakdown — per-endpoint latency, resource usage, and recommendations — in
+[`report.md`](report.md).**
 
 ## Tests
 
