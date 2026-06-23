@@ -134,6 +134,38 @@ Seed demo data from the live service's **Shell** tab: `python scripts/seed.py`.
 FastAPI · SQLAlchemy 2.0 (async) · asyncpg · Redis (cache, Lua rate limiter, queue) ·
 Jinja2 · HTMX · Docker Compose · Locust.
 
+## Production Improvements I'd Add
+
+These are intentionally out of scope for a focused portfolio app — they add real operational
+complexity without changing what the project demonstrates architecturally. In a production
+deployment I'd layer in:
+
+- **Prometheus metrics** — expose a `/metrics` endpoint with a redirect-latency histogram,
+  cache hit/miss counters, and an ingestion-queue depth gauge; these are the exact signals
+  you need to tune TTLs, spot cache stampedes, and right-size the background worker.
+- **Sentry error tracking** — capture unhandled exceptions and slow-transaction traces in
+  the redirect and ingestion paths, where a silent failure means lost analytics or broken
+  short links for end users.
+- **Centralized structured logging** — attach a request ID to every redirect and API call,
+  emit JSON logs, and ship to a log aggregator (e.g., Loki or Datadog); this makes it
+  trivial to correlate a 5xx in the ingestion worker with the specific click event that
+  triggered it.
+- **Monitoring dashboards** — Grafana panels over the Prometheus metrics: redirect
+  throughput, p50/p95/p99 latency, cache hit rate, and queue backlog in one view.
+- **Alerting** — page on rising 5xx rate, a sustained drop in cache-hit rate (signals Redis
+  eviction pressure), or an ingestion-queue backlog that keeps growing (worker falling
+  behind click volume).
+- **Rate limiting enhancements** — the app already ships a distributed token-bucket limiter
+  (atomic Lua script, Redis server clock); for production you'd add per-API-key or tiered
+  limits and enforce a shared policy across all app instances behind the load balancer.
+- **Advanced deployment strategies** — blue-green or canary rollouts with health-gated
+  promotion, Alembic migration gating before traffic switches over, and multi-instance
+  autoscaling behind a load balancer to move past the single-worker CPU ceiling shown in
+  the load tests.
+
+These are deliberate scope decisions — the goal here was to build the core of a scalable
+URL shortener cleanly, not to replicate a full SRE platform.
+
 ## Project layout
 
 ```
