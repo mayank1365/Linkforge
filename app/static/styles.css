@@ -175,6 +175,7 @@ input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-so
   font-size: 13px; font-weight: 500; white-space: nowrap;
 }
 .btn-copy:hover { background: var(--surface-2); }
+.btn-copy.copied { color: var(--green); border-color: var(--green); }
 .result-dest { color: var(--muted); margin: 10px 0 0; word-break: break-all; font-size: 14px; }
 
 /* ---------- Feature tiles ---------- */

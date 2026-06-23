@@ -1,7 +1,8 @@
 <div class="result-card">
   <div class="result-row">
     <a class="short-url" href="{{ short_url }}" target="_blank" rel="noreferrer">{{ short_url }}</a>
-    <button class="btn-copy" onclick="navigator.clipboard.writeText('{{ short_url }}')">copy</button>
+    <button class="btn-copy" type="button"
+      onclick="(function(b){navigator.clipboard.writeText('{{ short_url }}');b.textContent='Copied!';b.classList.add('copied');setTimeout(function(){b.textContent='Copy';b.classList.remove('copied');},1500);})(this)">Copy</button>
   </div>
   <p class="result-dest">→ {{ long_url }}</p>
 </div>
