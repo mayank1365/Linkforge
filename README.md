@@ -48,11 +48,12 @@ docker compose up --build
 # dashboard:  http://localhost:8000/dashboard
 ```
 
-Seed demo data so the dashboard has something to show:
+Postgres and Redis stay on the internal compose network (not published to the
+host), so the stack never clashes with a local Postgres/Redis. Seed demo data so
+the dashboard has something to show — run it inside the app container:
 
 ```bash
-pip install -r requirements.txt          # for the seed script / tests
-python scripts/seed.py
+docker compose exec app python scripts/seed.py
 ```
 
 ### Run locally without Docker
