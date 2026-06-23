@@ -10,17 +10,15 @@
 </section>
 
 <section class="card">
-  <form hx-post="/htmx/shorten" hx-target="#result" hx-swap="innerHTML"
-        hx-indicator="#spinner" class="shorten-form">
+  <form hx-post="/htmx/shorten" hx-target="#result" hx-swap="innerHTML" hx-indicator="#spinner" class="shorten-form">
     <div class="field">
       <label for="long_url">Destination URL</label>
-      <input type="url" id="long_url" name="long_url"
-             placeholder="https://example.com/a/very/long/link" required />
+      <input type="url" id="long_url" name="long_url" placeholder="https://example.com/a/very/long/link" required />
     </div>
     <div class="field">
-      <label for="custom_alias">Custom alias <span class="muted">(optional)</span></label>
-      <input type="text" id="custom_alias" name="custom_alias"
-             placeholder="my-link" pattern="[A-Za-z0-9]+" maxlength="16" />
+      <label for="custom_alias">Custom alias </label>
+      <input type="text" id="custom_alias" name="custom_alias" placeholder="my-link" pattern="[A-Za-z0-9]+"
+        maxlength="16" />
     </div>
     <button type="submit" class="btn">
       Shorten <span id="spinner" class="htmx-indicator">…</span>
