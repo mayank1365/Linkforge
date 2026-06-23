@@ -8,6 +8,6 @@ venv/
 .pytest_cache/
 tests/
 locustfile.py
-scripts/
 *.md
 .omc/
+INTERVIEW_NOTES.md
