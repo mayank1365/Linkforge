@@ -1,0 +1,34 @@
+# Render Blueprint — provisions the whole stack from this repo.
+# In the Render dashboard: New + → Blueprint → connect this repo → Apply.
+services:
+  - type: web
+    name: linkforge
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: linkforge-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: linkforge-redis
+          property: connectionString
+      # BASE_URL is set automatically from RENDER_EXTERNAL_URL at runtime.
+      - key: RATE_LIMIT_CAPACITY
+        value: "20"
+      - key: RATE_LIMIT_REFILL
+        value: "5"
+
+  - type: keyvalue
+    name: linkforge-redis
+    plan: free
+    ipAllowList: []   # empty = reachable only from your Render services
+
+databases:
+  - name: linkforge-db
+    plan: free
