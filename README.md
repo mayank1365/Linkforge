@@ -31,20 +31,7 @@ batched analytics ingestion.
 
 ## Architecture
 
-```
-                ┌─────────────┐   cache-aside    ┌─────────┐
-   GET /{code}  │             │ ───────────────▶ │  Redis  │  link cache
-  ───────────▶  │   FastAPI   │ ◀─────────────── │         │  rate-limit buckets
-   302 redirect │  (async)    │                  │         │  click queue (LPUSH)
-                │             │ ── miss ──┐       └────┬────┘
-                └──────┬──────┘           ▼            │ RPOP (batch)
-                       │            ┌──────────┐       ▼
-   POST /api/links     │  SQL       │ Postgres │  ┌──────────────────┐
-  ───────────────────▶ └──────────▶ │  links   │  │ ingestion worker │
-                                    │  events  │ ◀│  batch insert +  │
-   GET /dashboard ◀──── rollups ────│  hourly  │  │  hourly upsert   │
-   (HTMX live poll)                 └──────────┘  └──────────────────┘
-```
+![Architecture Diagram](mermaid.png)
 
 ## Quickstart (Docker)
 
