@@ -67,6 +67,13 @@ body {
   flex-direction: column;
 }
 
+/* Smooth cross-fade when switching themes. Only fires on change (the theme is
+   set before first paint), so it never animates on initial load. */
+body, .nav, .card, .feature, .stat, .panel, input,
+.result-card, .theme-toggle, .footer, .dev-bar-track, .btn-copy {
+  transition: background-color .35s ease, color .35s ease, border-color .35s ease;
+}
+
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 

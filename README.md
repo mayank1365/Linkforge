@@ -3,12 +3,18 @@
 A high-throughput **URL shortener with real-time analytics**, built as a pure-Python
 full-stack application: **FastAPI + Postgres + Redis + HTMX**.
 
+### ▶️ Live demo: **https://linkforge-9gwq.onrender.com**
+
+> Deployed on Render (free tier — the first request after it's been idle takes
+> ~30–50s to wake, then it's fast).
+
 LinkForge is the classic "design a URL shortener" system-design problem turned into a
 real, running, load-tested product — with the engineering that makes it scale:
 cache-aside redirects, a distributed token-bucket rate limiter, and asynchronous,
 batched analytics ingestion.
 
-> No JavaScript framework. The UI is server-rendered HTML with **HTMX** for live updates.
+> No JavaScript framework. The UI is server-rendered HTML with **HTMX** for live
+> updates, plus a light/dark theme toggle.
 
 ---
 
@@ -116,6 +122,21 @@ redirects off Postgres; the bottleneck was raw CPU on a single dev machine
 ```bash
 pytest -q
 ```
+
+## Deploy
+
+The repo ships a Render **Blueprint** (`render.yaml`) that provisions the whole
+stack — web service (Docker), managed Postgres, and a Key Value (Redis) instance —
+and wires them together:
+
+1. In the [Render dashboard](https://dashboard.render.com): **New + → Blueprint**,
+   connect this repo, **Apply**.
+2. The app reads `DATABASE_URL` / `REDIS_URL` from the managed services, listens on
+   the injected `$PORT`, and builds shareable short links from `RENDER_EXTERNAL_URL`
+   automatically — no manual config.
+3. `autoDeploy` is on, so every push to `main` ships a new version.
+
+Seed demo data from the live service's **Shell** tab: `python scripts/seed.py`.
 
 ## Tech stack
 
