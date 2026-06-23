@@ -5,6 +5,30 @@ from sqlalchemy import text
 from ..base62 import encode
 from ..config import settings
 
+ALIAS_TAKEN_MSG = "This alias already exists. Please choose a different alias."
+
+
+def normalize_alias(alias: str) -> str:
+    """Canonical form for uniqueness: case-insensitive, '-' and '_' equivalent.
+
+    So Test, TEST, test all collide, and test-alias / test_alias collide.
+    """
+    return alias.strip().lower().replace("_", "-")
+
+
+async def alias_is_taken(session, alias: str) -> bool:
+    """True if any existing code matches the alias under normalized comparison."""
+    row = (
+        await session.execute(
+            text(
+                "SELECT 1 FROM links "
+                "WHERE lower(replace(short_code, '_', '-')) = :norm LIMIT 1"
+            ),
+            {"norm": normalize_alias(alias)},
+        )
+    ).first()
+    return row is not None
+
 
 async def create_link_record(session, long_url: str, custom_alias: str | None):
     """Insert a link and return its full row.
@@ -14,17 +38,8 @@ async def create_link_record(session, long_url: str, custom_alias: str | None):
     collision-free shortener trick.
     """
     if custom_alias:
-        exists = (
-            await session.execute(
-                text("SELECT 1 FROM links WHERE short_code = :c"),
-                {"c": custom_alias},
-            )
-        ).first()
-        if exists:
-            raise HTTPException(
-                409,
-                f'The alias "{custom_alias}" already exists — please choose a different one.',
-            )
+        if await alias_is_taken(session, custom_alias):
+            raise HTTPException(409, ALIAS_TAKEN_MSG)
         row = (
             await session.execute(
                 text(

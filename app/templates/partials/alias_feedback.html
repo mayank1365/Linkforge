@@ -1,0 +1,11 @@
+{# Out-of-band swap: enable/disable the Shorten button based on alias validity #}
+<button id="submit-btn" class="btn" type="submit" hx-swap-oob="true"
+        {% if state == "error" %}disabled{% endif %}>
+  Shorten <span id="spinner" class="htmx-indicator">…</span>
+</button>
+{# Inline feedback rendered into #alias-feedback (below the alias input) #}
+{% if state == "error" %}
+<span class="field-msg error">{{ message }}</span>
+{% elif state == "ok" %}
+<span class="field-msg ok">✓ {{ message }}</span>
+{% endif %}

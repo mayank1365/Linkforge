@@ -10,8 +10,8 @@ from .. import analytics
 from ..config import settings
 from ..database import SessionLocal, get_session
 from ..ratelimit import client_ip, check_rate_limit
-from ..schemas import CreateLink
-from .helpers import create_link_record
+from ..schemas import ALIAS_RE, RESERVED_ALIASES, CreateLink
+from .helpers import ALIAS_TAKEN_MSG, alias_is_taken, create_link_record
 
 router = APIRouter()
 
@@ -90,6 +90,40 @@ async def htmx_shorten(
             "short_code": row.short_code,
             "long_url": row.long_url,
         },
+    )
+
+
+@router.get("/htmx/check-alias", response_class=HTMLResponse)
+async def check_alias(
+    request: Request,
+    custom_alias: str = "",
+    session=Depends(get_session),
+):
+    """Live alias availability check (called as the user types).
+
+    Renders an inline message under the field and an out-of-band swap that
+    enables/disables the Shorten button.
+    """
+    alias = custom_alias.strip()
+
+    if not alias:
+        state, message = "empty", ""
+    elif not ALIAS_RE.match(alias):
+        state, message = (
+            "error",
+            "Alias may contain only letters, numbers, hyphen or underscore (max 16).",
+        )
+    elif alias.lower() in RESERVED_ALIASES:
+        state, message = "error", "That alias is reserved. Please choose another."
+    elif await alias_is_taken(session, alias):
+        state, message = "error", ALIAS_TAKEN_MSG
+    else:
+        state, message = "ok", "Available"
+
+    return templates.TemplateResponse(
+        request,
+        "partials/alias_feedback.html",
+        {"state": state, "message": message},
     )
 
 

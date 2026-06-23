@@ -18,9 +18,13 @@
     <div class="field">
       <label for="custom_alias">Custom alias </label>
       <input type="text" id="custom_alias" name="custom_alias" placeholder="my-link" pattern="[A-Za-z0-9_-]+"
-        maxlength="16" title="Letters, numbers, hyphen or underscore" />
+        maxlength="16" title="Letters, numbers, hyphen or underscore"
+        autocomplete="off"
+        hx-get="/htmx/check-alias" hx-trigger="keyup changed delay:350ms, blur"
+        hx-target="#alias-feedback" hx-swap="innerHTML" hx-include="this" />
+      <div id="alias-feedback" class="field-feedback"></div>
     </div>
-    <button type="submit" class="btn">
+    <button id="submit-btn" type="submit" class="btn">
       Shorten <span id="spinner" class="htmx-indicator">…</span>
     </button>
   </form>

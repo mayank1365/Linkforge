@@ -145,6 +145,19 @@ input::placeholder { color: #aeaeb2; }
 input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
 .muted { color: var(--muted); }
 
+/* Inline field validation */
+.field-feedback { min-height: 18px; }
+.field-msg { font-size: 13px; line-height: 1.3; }
+.field-msg.error { color: var(--danger); }
+.field-msg.ok { color: var(--green); }
+/* Highlight the alias input red while its feedback shows an error (no JS) */
+.field:has(.field-msg.error) input {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 4px rgba(255, 59, 48, .15);
+}
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn:disabled:hover { background: var(--accent); }
+
 /* Apple pill button */
 .btn {
   justify-self: start;
