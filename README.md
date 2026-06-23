@@ -223,4 +223,3 @@ scripts/seed.py
 locustfile.py
 tests/
 ```
-f
