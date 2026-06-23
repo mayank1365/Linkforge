@@ -188,7 +188,9 @@ class TestCheckAlias:
     async def test_empty_alias_returns_empty_state(self, client, flush_redis):
         resp = await client.get("/htmx/check-alias", params={"custom_alias": ""})
         assert resp.status_code == 200
-        assert "empty" in resp.text or resp.text.strip() == ""
+        # Empty alias: no validation message, and the submit button stays enabled.
+        assert "field-msg" not in resp.text
+        assert "disabled" not in resp.text
 
     async def test_available_alias(self, client, flush_redis):
         resp = await client.get(

@@ -110,9 +110,43 @@ Spike (ramp 300/s)   600       40,679     1,363/s      0.00%        38 / 120 / 6
 
 ## Tests
 
+54 tests — unit (base62, alias normalization, device parsing) and integration
+(API, redirect, custom-alias collisions, live alias-check, rate limiting) driven
+in-process via `httpx.AsyncClient` + `ASGITransport` (no running server needed).
+
 ```bash
-pytest -q
+# Unit tests only (no external services):
+pytest tests/test_base62.py tests/test_unit.py -v
+
+# Full suite (needs Postgres 16 + Redis 7 — see docker-compose.yml):
+DATABASE_URL=postgresql+asyncpg://linkforge:linkforge@localhost:5432/linkforge \
+REDIS_URL=redis://localhost:6379/0 \
+pytest -v
 ```
+
+CI runs the full suite on every push/PR to `main` via
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) (Postgres + Redis service
+containers).
+
+## Database migrations
+
+Schema is managed with [Alembic](https://alembic.sqlalchemy.org/) (async, over
+`asyncpg` — no `psycopg2` needed).
+
+```bash
+alembic upgrade head                       # apply all migrations
+alembic revision --autogenerate -m "msg"   # after a model change
+alembic downgrade -1                        # roll back one step
+```
+
+For the zero-config demo, `app/main.py` also runs `Base.metadata.create_all` on
+startup, so the app boots against a blank database without Alembic; on a
+provisioned database you'd run `alembic upgrade head` instead (the two coexist —
+Alembic only manages its own `alembic_version` table). Custom-alias uniqueness is
+enforced at the DB level: `links.alias_key` stores the normalized alias
+(`lower`, `_`→`-`) with a unique index (`uq_links_alias_key`), so `Test`/`TEST`
+and `test-alias`/`test_alias` can't both be created. Auto base62 codes leave
+`alias_key` NULL (Postgres treats NULLs as distinct), so they never collide.
 
 ## Deploy
 
@@ -189,3 +223,4 @@ scripts/seed.py
 locustfile.py
 tests/
 ```
+f

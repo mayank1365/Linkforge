@@ -34,9 +34,32 @@ _test_engine = create_async_engine(_TEST_DB_URL, echo=False)
 _TestSession = async_sessionmaker(_test_engine, class_=AsyncSession, expire_on_commit=False)
 
 
-@pytest_asyncio.fixture(scope="session", autouse=False)
+@pytest_asyncio.fixture(autouse=True)
+async def _reset_connections():
+    """Dispose pooled DB/Redis connections after every test.
+
+    Each test runs on its own (function-scoped) event loop. asyncpg and redis
+    bind connections to the loop that created them, so a pooled connection from
+    a previous test's loop blows up when reused. Disposing after each test forces
+    the next one to open fresh connections on its own loop.
+    """
+    yield
+    from app.database import engine as app_engine
+    from app.redis_client import redis_client
+
+    await app_engine.dispose()
+    await _test_engine.dispose()
+    try:
+        await redis_client.connection_pool.disconnect()
+    except Exception:
+        pass
+
+
+@pytest_asyncio.fixture
 async def create_tables():
-    """Create all tables once per test session (idempotent)."""
+    """Create all tables (idempotent). Function-scoped so its event loop matches
+    the function-scoped client/truncate fixtures (pytest-asyncio requires async
+    fixtures in a dependency chain to share one loop scope)."""
     async with _test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield

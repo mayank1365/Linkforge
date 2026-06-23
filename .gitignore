@@ -14,3 +14,4 @@ env/
 .vscode/
 .omc/
 INTERVIEW_NOTES.md
+.claude/
