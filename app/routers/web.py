@@ -4,6 +4,7 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from pydantic import ValidationError
 
 from .. import analytics
 from ..config import settings
@@ -42,11 +43,21 @@ async def htmx_shorten(
     # Validate via the same schema the JSON API uses.
     try:
         payload = CreateLink(long_url=long_url, custom_alias=custom_alias or None)
-    except Exception:
+    except ValidationError as exc:
+        alias_errors = [
+            err for err in exc.errors()
+            if err.get("loc") and err["loc"][0] == "custom_alias"
+        ]
+        if alias_errors:
+            # Surface the validator's own message (covers format + reserved cases).
+            raw = alias_errors[0].get("msg", "").split("Value error, ", 1)[-1]
+            message = (raw[:1].upper() + raw[1:] + ".") if raw else "Invalid alias."
+        else:
+            message = "Please enter a valid http or https URL."
         return templates.TemplateResponse(
             request,
             "partials/error.html",
-            {"message": "Please enter a valid http(s) URL (and a clean alias)."},
+            {"message": message},
             status_code=422,
         )
 
@@ -56,17 +67,11 @@ async def htmx_shorten(
                 session, str(payload.long_url), payload.custom_alias
             )
         except HTTPException as exc:
-            if exc.status_code == 409:
-                message = (
-                    f"The alias “{payload.custom_alias}” is already in use — "
-                    "please choose a different one."
-                )
-            else:
-                message = str(exc.detail)
+            # The helper already crafts a clear, alias-specific 409 message.
             return templates.TemplateResponse(
                 request,
                 "partials/error.html",
-                {"message": message},
+                {"message": str(exc.detail)},
                 status_code=exc.status_code,
             )
         except Exception:

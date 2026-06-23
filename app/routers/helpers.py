@@ -21,7 +21,10 @@ async def create_link_record(session, long_url: str, custom_alias: str | None):
             )
         ).first()
         if exists:
-            raise HTTPException(409, "alias already taken")
+            raise HTTPException(
+                409,
+                f'The alias "{custom_alias}" already exists — please choose a different one.',
+            )
         row = (
             await session.execute(
                 text(

@@ -17,8 +17,8 @@
     </div>
     <div class="field">
       <label for="custom_alias">Custom alias </label>
-      <input type="text" id="custom_alias" name="custom_alias" placeholder="my-link" pattern="[A-Za-z0-9]+"
-        maxlength="16" />
+      <input type="text" id="custom_alias" name="custom_alias" placeholder="my-link" pattern="[A-Za-z0-9_-]+"
+        maxlength="16" title="Letters, numbers, hyphen or underscore" />
     </div>
     <button type="submit" class="btn">
       Shorten <span id="spinner" class="htmx-indicator">…</span>
