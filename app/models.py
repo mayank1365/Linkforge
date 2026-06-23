@@ -9,6 +9,7 @@ from sqlalchemy import (
     Index,
     String,
     Text,
+    UniqueConstraint,
     func,
 )
 from sqlalchemy.orm import Mapped, mapped_column
@@ -31,6 +32,17 @@ class Link(Base):
     click_count: Mapped[int] = mapped_column(BigInteger, default=0, server_default="0")
     is_active: Mapped[bool] = mapped_column(
         Boolean, default=True, server_default="true"
+    )
+    # Normalised alias for uniqueness enforcement (set only for custom aliases).
+    # NULLs are ignored by UNIQUE constraints in Postgres, so auto-generated
+    # base62 short_codes (which leave this NULL) never collide here.
+    # We cannot use a functional unique index on lower(short_code) because
+    # base62 codes are mixed-case and two distinct codes could share the same
+    # lower() value, causing false conflicts.
+    alias_key: Mapped[str | None] = mapped_column(String(16), nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint("alias_key", name="uq_links_alias_key"),
     )
 
 
