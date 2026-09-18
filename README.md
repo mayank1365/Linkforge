@@ -5,7 +5,7 @@ full-stack application: **FastAPI + Postgres + Redis + HTMX**.
 
 ### ▶️ Live demo: **https://linkforge-9gwq.onrender.com**
 
-> Deployed on Render (free tier — the first request after it's been idle takes
+> Deployed on Render (free tier; the first request after it's been idle takes
 > ~30–50s to wake, then it's fast).
 
 LinkForge is the classic "design a URL shortener" system-design problem turned into a
@@ -26,7 +26,7 @@ batched analytics ingestion.
 | **Abuse / fairness** | A **distributed token-bucket rate limiter** implemented as an atomic Redis **Lua** script. Uses the Redis server clock (`TIME`), so it's correct across many app instances regardless of host clock skew. |
 | **Analytics without slowing redirects** | The redirect path only does an O(1) `LPUSH` of a click event. A background **ingestion worker** drains the queue in batches and writes raw events, **pre-aggregated hourly rollups** (upsert), and a denormalised counter. |
 | **Dashboard stays fast at scale** | Reads hit the `click_stats_hourly` rollup table, not the raw event firehose. |
-| **Compact short codes** | Base62 encoding of the auto-increment id — collision-free by construction. Custom aliases supported. |
+| **Compact short codes** | Base62 encoding of the auto-increment id, collision-free by construction. Custom aliases supported. |
 | **Async end-to-end** | `asyncpg` + SQLAlchemy 2.0 async + `redis.asyncio`. The hot path bypasses the ORM and uses prepared SQL. |
 
 ## Architecture
@@ -102,10 +102,10 @@ Spike (ramp 300/s)   600       40,679     1,363/s      0.00%        38 / 120 / 6
 - **Zero failures** across every scenario; redirects stay <150 ms p95 even at 4× the
   saturation point, and latency recovers to ~3–8 ms instantly after a spike.
 - The single worker is **CPU-bound on one core** (~1,200 req/s ceiling). The app is
-  stateless, so it scales ~linearly — **4 workers on the same box reached ~2,200 req/s**.
+  stateless, so it scales ~linearly; **4 workers on the same box reached ~2,200 req/s**.
 - The distributed token-bucket limiter throttles correctly (20 burst → 429 → refill).
 
-📄 **Full breakdown — per-endpoint latency, resource usage, and recommendations — in
+📄 **Full breakdown (per-endpoint latency, resource usage, and recommendations) in
 [`report.md`](report.md).**
 
 ## Tests
@@ -174,25 +174,25 @@ These are intentionally out of scope for a focused portfolio app — they add re
 complexity without changing what the project demonstrates architecturally. In a production
 deployment I'd layer in:
 
-- **Prometheus metrics** — expose a `/metrics` endpoint with a redirect-latency histogram,
+- **Prometheus metrics**: expose a `/metrics` endpoint with a redirect-latency histogram,
   cache hit/miss counters, and an ingestion-queue depth gauge; these are the exact signals
   you need to tune TTLs, spot cache stampedes, and right-size the background worker.
-- **Sentry error tracking** — capture unhandled exceptions and slow-transaction traces in
+- **Sentry error tracking**: capture unhandled exceptions and slow-transaction traces in
   the redirect and ingestion paths, where a silent failure means lost analytics or broken
   short links for end users.
-- **Centralized structured logging** — attach a request ID to every redirect and API call,
+- **Centralized structured logging**: attach a request ID to every redirect and API call,
   emit JSON logs, and ship to a log aggregator (e.g., Loki or Datadog); this makes it
   trivial to correlate a 5xx in the ingestion worker with the specific click event that
   triggered it.
-- **Monitoring dashboards** — Grafana panels over the Prometheus metrics: redirect
+- **Monitoring dashboards**: Grafana panels over the Prometheus metrics: redirect
   throughput, p50/p95/p99 latency, cache hit rate, and queue backlog in one view.
-- **Alerting** — page on rising 5xx rate, a sustained drop in cache-hit rate (signals Redis
+- **Alerting**: page on rising 5xx rate, a sustained drop in cache-hit rate (signals Redis
   eviction pressure), or an ingestion-queue backlog that keeps growing (worker falling
   behind click volume).
-- **Rate limiting enhancements** — the app already ships a distributed token-bucket limiter
+- **Rate limiting enhancements**: the app already ships a distributed token-bucket limiter
   (atomic Lua script, Redis server clock); for production you'd add per-API-key or tiered
   limits and enforce a shared policy across all app instances behind the load balancer.
-- **Advanced deployment strategies** — blue-green or canary rollouts with health-gated
+- **Advanced deployment strategies**: blue-green or canary rollouts with health-gated
   promotion, Alembic migration gating before traffic switches over, and multi-instance
   autoscaling behind a load balancer to move past the single-worker CPU ceiling shown in
   the load tests.
